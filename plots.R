@@ -101,7 +101,7 @@ soccerSalariesData4 <- soccerSalariesData %>%
 	filter(!is.na(academyCategory))
 
 # Set factor levels
-soccerSalariesData4$academyCategory <- factor(soccerSalariesData3$academyCategory,
+soccerSalariesData4$academyCategory <- factor(soccerSalariesData4$academyCategory,
 																							levels = c("1", "2", "3", "SFA Elite", "Development"))
 
 # Create object to store axis labels with line breaks
