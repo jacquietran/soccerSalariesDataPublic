@@ -1,0 +1,141 @@
+##### Load libraries ###############################################################################
+
+library(readr)
+library(ggplot2)
+library(dplyr)
+
+##### Read data into R #############################################################################
+
+soccerSalariesData <- read_csv("soccerSalariesDataPublic.csv",
+															 col_names = TRUE, col_types = NULL)
+
+##### Plot: Salary by league #######################################################################
+
+# Set factor levels
+soccerSalariesData$leagueOfFirstTeam <- factor(soccerSalariesData$leagueOfFirstTeam,
+																							 levels = c("Premier League", "Scottish Premiership",
+																							 					 "Championship", "League 1", "League 2"))
+
+# Create object to store axis labels with line breaks
+labelsLeague <- c("Premier\nLeague", "Scottish\nPremiership", "Championship", "League 1", "League 2")
+
+p <- ggplot(soccerSalariesData, aes(x = leagueOfFirstTeam, y = salaryGBP))
+p <- p + geom_boxplot(outlier.shape = NA, coef = 0)
+p <- p + geom_point(alpha = 1/4, size = 4, aes(colour = leagueOfFirstTeam))
+p <- p + scale_y_continuous(limits = c(0, 60000),
+														breaks = seq(0, 60000, by = 10000))
+p <- p + scale_x_discrete(labels = labelsLeague)
+p <- p + labs(title = "Soccer support staff salaries in the UK",
+							subtitle = "Categorised by league that the first team plays in",
+							y = "Salary (GBP)")
+p <- p + theme(axis.title.x = element_blank(),
+							 legend.position = "none")
+ggsave("salaryByLeague.png")
+
+##### Plot: Salary by league and competitive level #################################################
+
+p <- ggplot(soccerSalariesData, aes(x = leagueOfFirstTeam, y = salaryGBP))
+p <- p + facet_wrap(~levelOfWork)
+p <- p + geom_boxplot(outlier.shape = NA, coef = 0)
+p <- p + geom_point(alpha = 1/4, size = 4, aes(colour = leagueOfFirstTeam))
+p <- p + scale_y_continuous(limits = c(0, 60000),
+														breaks = seq(0, 60000, by = 10000))
+p <- p + scale_x_discrete(labels = labelsLeague)
+p <- p + labs(title = "Soccer support staff salaries in the UK",
+							subtitle = "First Team vs. Academy",
+							y = "Salary (GBP)")
+p <- p + theme(axis.title.x = element_blank(),
+							 legend.position = "none")
+ggsave("salaryByLeagueAndCompLevel.png", width = 22, units = "cm")
+
+##### Plot: Salary by job category #################################################################
+
+# Subset of data frame to exclude position == NA | Intern
+soccerSalariesData2 <- soccerSalariesData %>%
+	filter(position != "Intern" & !is.na(position))
+# Set factor levels
+soccerSalariesData2$position <- factor(soccerSalariesData2$position,
+																			 levels = c("Head", "Lead", "Coach"))
+
+p <- ggplot(soccerSalariesData2, aes(x = position, y = salaryGBP))
+p <- p + geom_boxplot(outlier.shape = NA, coef = 0)
+p <- p + geom_point(alpha = 1/4, size = 4, aes(colour = position))
+p <- p + scale_y_continuous(limits = c(0, 60000),
+														breaks = seq(0, 60000, by = 10000))
+p <- p + labs(title = "Soccer support staff salaries in the UK",
+							subtitle = "Categorised by position: Department head, discipline lead, or 'coach'",
+							y = "Salary (GBP)")
+p <- p + theme(axis.title.x = element_blank(),
+							 legend.position = "none")
+ggsave("salaryByPosition.png", units = "cm")
+
+##### Plot: Salary by league and discipline ########################################################
+
+# Subset of data frame to exclude dept == NA
+soccerSalariesData3 <- soccerSalariesData %>%
+	filter(!is.na(dept))
+soccerSalariesData3$dept <- recode(soccerSalariesData3$dept,
+																	 `Physical Performance` = "S&C")
+# Set factor levels
+soccerSalariesData3$dept <- factor(soccerSalariesData3$dept,
+																	 levels = c("S&C", "Sport Science", "Both"))
+
+p <- ggplot(soccerSalariesData3, aes(x = leagueOfFirstTeam, y = salaryGBP))
+p <- p + facet_wrap(~dept)
+p <- p + geom_boxplot(outlier.shape = NA, coef = 0)
+p <- p + geom_point(alpha = 1/4, size = 4, aes(colour = leagueOfFirstTeam))
+p <- p + scale_y_continuous(limits = c(0, 60000),
+														breaks = seq(0, 60000, by = 10000))
+p <- p + scale_x_discrete(labels = labelsLeague)
+p <- p + labs(title = "Soccer support staff salaries in the UK",
+							subtitle = "Categorised by discipline",
+							y = "Salary (GBP)")
+p <- p + theme(axis.title.x = element_blank(),
+							 legend.position = "none")
+ggsave("salaryByLeagueAndDept.png", width = 32, units = "cm")
+
+##### Plot: Salary by academy category #############################################################
+
+# Subset of data frame to exclude academyCategory == NA
+soccerSalariesData4 <- soccerSalariesData %>%
+	filter(!is.na(academyCategory))
+
+# Set factor levels
+soccerSalariesData4$academyCategory <- factor(soccerSalariesData3$academyCategory,
+																							levels = c("1", "2", "3", "SFA Elite", "Development"))
+
+# Create object to store axis labels with line breaks
+labelsAcademyCategory <- c("England\nCategory 1", "England\nCategory 2", "England\nCategory 3",
+													 "Scotland\nSFA Elite", "Scotland\nDevelopment")
+
+p <- ggplot(soccerSalariesData4, aes(x = academyCategory, y = salaryGBP))
+p <- p + geom_boxplot(outlier.shape = NA, coef = 0)
+p <- p + geom_point(alpha = 1/4, size = 4, aes(colour = academyCategory))
+p <- p + scale_y_continuous(limits = c(0, 50000),
+														breaks = seq(0, 50000, by = 10000))
+p <- p + scale_x_discrete(labels = labelsAcademyCategory)
+p <- p + labs(title = "Soccer support staff salaries in the UK: Academy staff only",
+							subtitle = "Organised by Academy Category",
+							y = "Salary (GBP)")
+p <- p + theme(axis.title.x = element_blank(),
+							 legend.position = "none")
+ggsave("salaryByAcademyCategory.png")
+
+##### Plot: Salary by highest qualification ########################################################
+
+# Set factor levels
+soccerSalariesData$highestQualCategory <- factor(soccerSalariesData$highestQualCategory,
+																								 levels = c(
+																								 	"PhD", "Postgraduate", "Undergraduate", "Unclear"))
+
+p <- ggplot(soccerSalariesData, aes(x = highestQualCategory, y = salaryGBP))
+p <- p + geom_boxplot(outlier.shape = NA, coef = 0)
+p <- p + geom_point(alpha = 1/4, size = 4, aes(colour = highestQualCategory))
+p <- p + scale_y_continuous(limits = c(0, 50000),
+														breaks = seq(0, 50000, by = 10000))
+p <- p + labs(title = "Soccer support staff salaries in the UK",
+							subtitle = "Categorised by highest qualification",
+							y = "Salary (GBP)")
+p <- p + theme(axis.title.x = element_blank(),
+							 legend.position = "none")
+ggsave("salaryByHighestQual.png")
